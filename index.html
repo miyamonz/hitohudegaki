@@ -87,6 +87,11 @@
     <button onclick="reset()">リセット</button>
     <button onclick="draw(`RL`)">←</button>
     <button onclick="draw(`LR`)">→</button>
+    <input type="range" id="tsumami" min="0" max="5" step="0.1">
+     一筆書きにかける時間<span id="byou"></span>
+    <br>
+    <input type="range" id="tsumami_wait" min="0" max="5" step="0.1">
+    鳥が出てくるまでの時間<span id="byou_wait"></span>
     <p>
       挙動が変な時は何度かリセットを押してください
     </p>
@@ -99,24 +104,35 @@
    var st2 = document.querySelector(".st2")
    var st3 = document.querySelector(".st3")
    var st = [st1, st2, st3]
-    var picker = document.querySelector("input[type='color']")
-picker.onchange = e => {
-    console.log(e.target.value)
-    st0.style.stroke = e.target.value
-}
+// var tsumami = document.querySelector("#tsumami")
+let sec = 0;
+let wait = 2;
+let ids = []
+tsumami.oninput  = e => setByou(parseFloat(e.target.value))
+tsumami_wait.oninput  = e => setWait(parseFloat(e.target.value))
+
+let setByou = s => sec = byou.innerHTML = s;
+let setWait = s => wait = byou_wait.innerHTML = s;
+setByou(1.5);
+setWait(1.8);
     function reset() {
         st0.style.webkitanimation = st0.style.animation = "";
     st.forEach( (e,i) => e.style.animation = "" );
+        ids.forEach( i => clearInterval(i) );
+        ids = [];
 
     }
     function draw(anime) {
-        let str = `${anime} 3.4s ease-in-out forwards`;
+        console.log(tsumami)
+        let str = `${anime} ${sec}s ease-in-out forwards`;
+        console.log(str)
         st0.style.webkitanimation = st0.style.animation = str;
         st.forEach( (e,i) => {
-            setTimeout(_ => {
+            let idx = setTimeout(_ => {
                 e.style.webkitanimation = e.style.animation = `fadeIn 1s forwards`;
 
-            }, 3000);
+            }, wait * 1000);
+            ids.push(idx);
 
         } )
     }
