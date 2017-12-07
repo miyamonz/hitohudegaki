@@ -1,0 +1,59 @@
+body {
+    background: #eee;
+}
+button {
+    width: 30%;
+    height: 100px;
+    font-size: 4rem;
+}
+svg {
+    fill: none;
+    stroke-width: 1px;
+    stroke-dasharray: 5000;
+    stroke-dashoffset:-5000;
+}
+.st0{fill:none;stroke:#292929;}
+.st1{fill:#7F7E7E;}
+.st2{fill:#F44242;}
+.st3{fill:#FFFFFF;}
+
+svg.draw {
+    animation: LR 3.4s ease-in-out forwards,
+}
+@keyframes LR{
+    0%  {
+        stroke-dashoffset:-5000;
+    }
+    100%{
+        stroke-dashoffset:0;
+    }
+}
+@keyframes RL{
+    0%  {
+        stroke-dashoffset:5000;
+    }
+    100%{
+        stroke-dashoffset:0;
+    }
+}
+@keyframes swing { 
+    0% { transform: rotate(0deg);  }
+    25% { transform: rotate(3deg);  }
+    50% { transform: rotate(0deg);  }
+    75% { transform: rotate(-3deg);  }
+    100% { transform: rotate(0deg);  }
+}
+
+@keyframes fadeIn {
+    0% {opacity: 0}
+    100% {opacity: 1}
+
+}
+
+@-webkit-keyframes fadeIn {
+    0% {opacity: 0}
+    100% {opacity: 1}
+
+}
+
+
