@@ -100,6 +100,13 @@
     <!-- <input type="color"> -->
 </body>
 <script type="text/javascript">
+        var params = location.href
+   .split("?")
+   .filter( (_,i) => i !== 0  )
+   .map( str => str.split("=")  )
+   .map( arr => ({[arr[0]]: arr[1]})  )
+   .reduce( (obj, e) => Object.assign(obj, e), {} );
+
     var st0 = document.querySelector(".st0");
    // var st0 = document.querySelector(".st0")
    var st1 = document.querySelector(".st1")
@@ -115,8 +122,12 @@ tsumami_wait.oninput  = e => setWait(parseFloat(e.target.value))
 
 let setByou = s => sec = byou.innerHTML = s;
 let setWait = s => wait = byou_wait.innerHTML = s;
-setByou(1.5);
-setWait(1.8);
+
+let defaultTime = params.time ? parseFloat(params.time) : 1.5;
+let defaultWait = params.wait ? parseFloat(params.wait) : 1.8;
+
+setByou(defaultTime);
+setWait(defaultWait);
     function reset() {
         st0.style.webkitanimation = st0.style.animation = "";
     st.forEach( (e,i) => e.style.animation = "" );
