@@ -12,6 +12,9 @@ svg {
     stroke-dasharray: 5000;
     stroke-dashoffset:-5000;
 }
+.st1, .st2, .st3 {
+    opacity: 0;
+} 
 .st0{fill:none;stroke:#292929;}
 .st1{fill:#7F7E7E;}
 .st2{fill:#F44242;}
