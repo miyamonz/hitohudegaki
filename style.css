@@ -9,12 +9,16 @@ button {
 svg {
     fill: none;
     stroke-width: 1px;
-    stroke-dasharray: 5000;
-    stroke-dashoffset:-5000;
+    stroke-dasharray: 9000;
+    stroke-dashoffset:-9000;
+    transition:all 1s ease-in-out;
 }
 .st1, .st2, .st3 {
     opacity: 0;
 } 
+.test {
+    fill:black;
+}
 .st0{fill:none;stroke:#292929;}
 .st1{fill:#7F7E7E;}
 .st2{fill:#F44242;}
@@ -25,7 +29,7 @@ svg.draw {
 }
 @keyframes LR{
     0%  {
-        stroke-dashoffset:-5000;
+        stroke-dashoffset:-9000;
     }
     100%{
         stroke-dashoffset:0;
@@ -33,7 +37,7 @@ svg.draw {
 }
 @keyframes RL{
     0%  {
-        stroke-dashoffset:5000;
+        stroke-dashoffset:9000;
     }
     100%{
         stroke-dashoffset:0;
