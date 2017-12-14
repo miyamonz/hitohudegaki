@@ -174,7 +174,7 @@ function frame(time) {
     var dx = 2 * simplex.noise2D(now/1000, x/100)
     var dy = 2 * simplex.noise2D(now/1000, y/100)
     if( sec > 2 ) start = new Date();
-    let pulse = t => (0 <= t  && t <= 1 ) ? Math.sin(t*Math.PI)*Math.sin(t*Math.PI) : 0;
+    let pulse = t => (0 <= t  && t <= 1 ) ? (1- Math.cos(2*t*Math.PI))/2 : 0;
     let diff = (simplex.noise2D(now/1000,sec)/3+1) * pulse(sec - x/1000);
     return [dx,dy + - diff * 10];
   })
