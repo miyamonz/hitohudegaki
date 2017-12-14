@@ -1,9 +1,11 @@
+// [a,b,c,d,e] => [[a,b],[c,d],[e]]
 const splitArray = (arr,l = 2) => arr.reduce((prev,next,i) => {
   const last = prev[prev.length-1];
   if(last.length < l) last.push(next)
   else prev.push([next])
   return prev
 },[[]]);
+
 class Command {
   constructor(command, params) {
     this.command = command;
@@ -19,6 +21,30 @@ class Command {
   toString() {
     return `${this.command}${this.params.join(",")}`
   }
+  getAbsolute(_prev) {
+    let c = this.command;
+    let params = Object.assign([],this.params)
+    let prev = Object.assign([],_prev);
+    let next = params[params.length-1]
+    if(c.match(/[A-Z]/)) { 
+      return {command: new Command(c,params), next};
+    }
+
+    let newCommand = c.toUpperCase();
+    let newParam = params.map( (point,i) => {
+      if(c === "v") point = [0,point[0]]
+      if(c === "h") point = [point[0],0]
+      if(["v","h"].includes(c)) newCommand = "L";
+      let newPoint = [
+        prev[0] + point[0],
+        prev[1] + point[1],
+      ]
+      return newPoint;
+    } )
+    next = newParam[newParam.length-1]
+    let command = new Command(newCommand, newParam);
+    return {command, next}
+  }
 }
 class Path {
   constructor(path) {
@@ -26,7 +52,6 @@ class Path {
     this.snap = Snap(path)
     this.default = path.getAttribute("d");
     this.commands = Path.strToCommands(this.default);
-    this.absCommands = Path.getAbsolute(this.commands);
   }
   static commandsToStr(commands) {
     return commands.map( command => command.toString() ).join("")
@@ -41,7 +66,7 @@ class Path {
   }
 
   offset(fn) {
-    // fn : point, index -> diff(2vec)
+    // fn : point:2vec, index -> diff(2vec)
     let moved = Path.getAbsolute(this.commands).map( (c,i) => {
       let offsetPoints = c.params.map( point => {
         let offset = fn(point,i)
@@ -56,15 +81,15 @@ class Path {
     this.update(moved)
   }
   absolute() {
-    this.abs = Path.getAbsolute(this.commands)
-    this.update(this.abs)
+    let abs = Path.getAbsolute(this.commands)
+    this.update(abs)
   }
   setDefault() {
     this.path.setAttribute("d",this.default)
   }
   linear() {
-    this.abs = Path.getAbsolute(this.commands)
-    let l = Path.getLinear(this.abs)
+    let abs = Path.getAbsolute(this.commands)
+    let l = Path.getLinear(abs)
     this.update(l);
   }
   static getLinear(commands) {
@@ -76,33 +101,12 @@ class Path {
     return newCommands;
   }
   static getAbsolute(commands){
-    let newCommands = [];
-    let prev = [0,0]
-    commands.forEach( (e,i) => {
-      if(e.command.match(/^[A-Z]$/)) {
-        prev = e.params[0]
-        newCommands.push({
-          command: e.command,
-          params: e.params,
-        })
-      }else {
-        let command = e.command;
-        command = command.toUpperCase();
-        let params = e.params.map( (point, pi) => {
-          if(e.command === "v") point = [0,point[0]]
-          if(e.command === "h") point = [point[0],0]
-          if(["v","h"].includes(e.command)) command = "L";
-          let newPoint = [
-            prev[0] + point[0],
-            prev[1] + point[1],
-          ]
-          if(pi === e.params.length-1) prev = newPoint;
-          return newPoint;
-        } )
-        newCommands.push( {command, params} )
-      }
+    let prev = [0,0];
+    return commands.map( c => {
+      let {command,next} = c.getAbsolute(prev);
+      prev = next;
+      return command;
     } )
-    return newCommands;
   }
 }
 var params = location.href
@@ -118,7 +122,6 @@ var st2 = document.querySelector(".st2")
 var st3 = document.querySelector(".st3")
 var st = [st1, st2, st3]
 var path = new Path(st0)
-// var tsumami = document.querySelector("#tsumami")
 let sec = 0;
 let wait = 2;
 let ids = []
@@ -142,11 +145,9 @@ function reset() {
 }
 function draw(anime) {
   start = new Date();
-  console.log(tsumami)
-  // path.linear();
+  path.linear();
   path.snap.animate({d: path.default}, sec * 1000, mina.easeinout)
   let str = `${anime} ${sec}s ease-in-out forwards`;
-  console.log(str)
   st0.style.webkitanimation = st0.style.animation = str;
   st.forEach( (e,i) => {
     let idx = setTimeout(_ => {
@@ -157,7 +158,6 @@ function draw(anime) {
 
   } )
 }
-
 
 var simplex = new SimplexNoise(Math.random);
 var start = new Date();
