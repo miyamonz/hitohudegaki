@@ -68,14 +68,7 @@ class Path {
   offset(fn) {
     // fn : point:2vec, index -> diff(2vec)
     let moved = Path.getAbsolute(this.commands).map( (c,i) => {
-      let offsetPoints = c.params.map( point => {
-        let offset = fn(point,i)
-        let added = [
-          point[0] + offset[0],
-          point[1] + offset[1],
-        ]
-        return added
-      } )
+      let offsetPoints = c.params.map( point => fn(point,i));
       return new Command(c.command, offsetPoints);
     } )
     this.update(moved)
@@ -161,21 +154,27 @@ function draw(anime) {
 
 var simplex = new SimplexNoise(Math.random);
 var start = new Date();
-function frame(time) {
+const add = ([a0,a1],[b0,b1]) => [a0+b0,a1+b1]
+const mult = (num, [a0,a1]) => [num*a0,num*a1]
+
+let pulse = t => (0 <= t  && t <= 1 ) ? (1- Math.cos(2*t*Math.PI))/2 : 0;
+function frame() {
   let now = new Date();
   time = now - start;
-
   let sec = time/1000;
+
   path.offset( (pos, i) => {
     let [x,y] = pos;
-    var dx = 2 * simplex.noise2D(now/1000, x/100)
-    var dy = 2 * simplex.noise2D(now/1000, y/100)
+    let dx = 2 * simplex.noise2D(now/1000, x/100)
+    let dy = 2 * simplex.noise2D(now/1000, y/100)
+    let d  = [dx,dy]
     if( sec > 2 ) start = new Date();
-    let pulse = t => (0 <= t  && t <= 1 ) ? (1- Math.cos(2*t*Math.PI))/2 : 0;
-    let diff = (simplex.noise2D(now/1000,sec)/3+1) * pulse(sec - x/1000);
-    return [dx,dy + - diff * 10];
+    let noise = simplex.noise2D(now/1000,sec)/3+1;
+    let diff =  noise * pulse(sec - x/1000);
+    let basePos = add(pos,d);
+    return add( basePos, [0,-diff * 10]);
   })
   requestAnimationFrame(frame)
 }
-frame(0)
+frame()
 
