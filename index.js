@@ -4,34 +4,45 @@ const splitArray = (arr,l = 2) => arr.reduce((prev,next,i) => {
   else prev.push([next])
   return prev
 },[[]]);
-class PathCommand {
+class Command {
   constructor(command, params) {
     this.command = command;
     this.params  = params;
+  }
+  static getFromString(str) {
+    let c = str.slice(0,1);
+    let nums = str.slice(1).replace(/(\d)-/g, '$1,-').split(",").map(e => parseFloat(e))
+    let points = splitArray(nums,2);
+
+    return new Command(c, points)
   }
   toString() {
     return `${this.command}${this.params.join(",")}`
   }
 }
-class PathMove {
+class Path {
   constructor(path) {
     this.path = path;
     this.snap = Snap(path)
     this.default = path.getAttribute("d");
-    this.commands = this.strToCommands(this.default);
-    this.absCommands = this.getAbsolute(this.commands);
+    this.commands = Path.strToCommands(this.default);
+    this.absCommands = Path.getAbsolute(this.commands);
   }
-  commandsToStr(commands) {
+  static commandsToStr(commands) {
     return commands.map( command => command.toString() ).join("")
   }
+  static strToCommands(str) {
+    let splited = str.split(/([a-zA-Z][0-9\,\-\.]+)/g).filter( e => e.match(/^[a-zA-Z]/) )
+    return splited.map( str => Command.getFromString(str) )
+  }
   update(commands) {
-    let str = this.commandsToStr(commands);
+    let str = Path.commandsToStr(commands);
     this.path.setAttribute("d",str)
   }
 
   offset(fn) {
     // fn : point, index -> diff(2vec)
-    let moved = this.getAbsolute(this.commands).map( (c,i) => {
+    let moved = Path.getAbsolute(this.commands).map( (c,i) => {
       let offsetPoints = c.params.map( point => {
         let offset = fn(point,i)
         let added = [
@@ -40,45 +51,31 @@ class PathMove {
         ]
         return added
       } )
-      return new PathCommand(c.command, offsetPoints);
+      return new Command(c.command, offsetPoints);
     } )
     this.update(moved)
   }
-  strToCommands(str) {
-    let commands = [];
-    let pathData = str.split(/([a-zA-Z])/g)
-      .filter((e,i,a) => e != "");
-    for(let i = 0; i < pathData.length; i += 2) {
-      const nums = pathData[i + 1]
-        .replace(/(\d)-/g, '$1,-')
-        .split(',')
-        .map(str => parseFloat(str));
-      let points = splitArray(nums,2)
-      commands.push(new PathCommand(pathData[i], points) );
-    }
-    return commands;
-  }
   absolute() {
-    this.abs = this.getAbsolute(this.commands)
+    this.abs = Path.getAbsolute(this.commands)
     this.update(this.abs)
   }
   setDefault() {
     this.path.setAttribute("d",this.default)
   }
   linear() {
-    this.abs = this.getAbsolute(this.commands)
-    let l = this.getLinear(this.abs)
+    this.abs = Path.getAbsolute(this.commands)
+    let l = Path.getLinear(this.abs)
     this.update(l);
   }
-  getLinear(commands) {
+  static getLinear(commands) {
     let newCommands = [];
     commands.forEach( ({command,params},i) => {
       let newParams = params.map( point => [1000 - i*4,200] )
-      newCommands.push( new PathCommand(command, newParams) );
+      newCommands.push( new Command(command, newParams) );
     } )
     return newCommands;
   }
-  getAbsolute(commands){
+  static getAbsolute(commands){
     let newCommands = [];
     let prev = [0,0]
     commands.forEach( (e,i) => {
@@ -120,7 +117,7 @@ var st1 = document.querySelector(".st1")
 var st2 = document.querySelector(".st2")
 var st3 = document.querySelector(".st3")
 var st = [st1, st2, st3]
-var pathMove = new PathMove(st0)
+var path = new Path(st0)
 // var tsumami = document.querySelector("#tsumami")
 let sec = 0;
 let wait = 2;
@@ -146,8 +143,8 @@ function reset() {
 function draw(anime) {
   start = new Date();
   console.log(tsumami)
-  // pathMove.linear();
-  pathMove.snap.animate({d: pathMove.default}, sec * 1000, mina.easeinout)
+  // path.linear();
+  path.snap.animate({d: path.default}, sec * 1000, mina.easeinout)
   let str = `${anime} ${sec}s ease-in-out forwards`;
   console.log(str)
   st0.style.webkitanimation = st0.style.animation = str;
@@ -169,7 +166,7 @@ function frame(time) {
   time = now - start;
 
   let sec = time/1000;
-  pathMove.offset( (pos, i) => {
+  path.offset( (pos, i) => {
     let [x,y] = pos;
     var dx = 2 * simplex.noise2D(now/1000, x/100)
     var dy = 2 * simplex.noise2D(now/1000, y/100)
